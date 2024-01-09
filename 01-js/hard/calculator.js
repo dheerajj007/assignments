@@ -17,10 +17,50 @@
 */
 
 class Calculator {
-  let result = 0;
+  constructor() {
+    this.result = 0;
+  }
 
-  add(){
-    result += num;``
+  add(number) {
+    this.result += parseFloat(number);
+  }
+  subtract(number) {
+    this.result -= parseFloat(number);
+  }
+  multiply(number) {
+    this.result *= parseFloat(number);
+  }
+  divide(number) {
+    const divisor = parseFloat(number);
+    if (!divisor) {
+      throw new Error("calculate division by zero");
+    } else {
+      this.result /= divisor;
+    }
+  }
+  clear() {
+    this.result = 0;
+  }
+  getResult() {
+    return this.result;
+  }
+
+  calculate(expression) {
+    expression = expression.split(" ").join("");
+
+    try {
+      this.result = eval(expression);
+
+      if (isNaN(this.result)) {
+        throw new Error("Invalid expression");
+      }
+
+      if (!isFinite(this.result)) {
+        throw new Error("Cannot divide by zero");
+      }
+    } catch (error) {
+      throw new Error("Invalid expression");
+    }
   }
 }
 

@@ -16,6 +16,12 @@
   Once you've implemented the logic, test your code by running
 */
 
-class Calculator {}
+class Calculator {
+  let result = 0;
+
+  add(){
+    result += num;``
+  }
+}
 
 module.exports = Calculator;

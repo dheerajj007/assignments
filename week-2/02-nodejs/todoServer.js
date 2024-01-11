@@ -41,13 +41,15 @@
  */
 const express = require("express");
 const bodyParser = require("body-parser");
+const fs = require("node:fs");
 
 const app = express();
 const port = 3001;
+const dataFilePath = "./todos.json";
 
 app.use(bodyParser.json());
 
-let todos = [];
+let todos = loadTodos();
 
 // Get all todos
 app.get("/todos", (req, res) => {
@@ -73,32 +75,34 @@ app.post("/todos", (req, res) => {
   const newTodo = { title, id, completed, description };
 
   todos.push(newTodo);
+  saveTodos();
   res.status(201).json({ id });
 });
 
+// Update the todo
 app.put("/todos/:id", (req, res) => {
   const { id } = req.params;
   const { title, description, completed } = req.body;
-
   const todoIndex = todos.findIndex((item) => item.id === parseInt(id));
 
   if (todoIndex !== -1) {
     todos[todoIndex] = { id: parseInt(id), title, description, completed };
-
-    res.status(200).send("Updated");
+    saveTodos();
+    res.status(200).send("OK");
   } else {
     res.status(404).send("Not Found");
   }
 });
 
+// Delete the todo
 app.delete("/todos/:id", (req, res) => {
   const { id } = req.params;
   const todoIndex = todos.findIndex((item) => item.id === parseInt(id));
 
   if (todoIndex !== -1) {
     todos.splice(todoIndex, 1);
-
-    res.status(200).send("Deleted");
+    saveTodos();
+    res.status(200).send("OK");
   } else {
     res.status(404).send("Not Found");
   }
@@ -109,7 +113,30 @@ app.use((req, res) => {
   res.status(404).send("Not Found");
 });
 
+// Load todos from the file
+function loadTodos() {
+  try {
+    const data = fs.readFileSync(dataFilePath, "utf8");
+    // console.log(data);
+    return JSON.parse(data) || [];
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
+
+// Save todos in the file
+function saveTodos() {
+  try {
+    fs.writeFileSync(dataFilePath, JSON.stringify(todos));
+    // file written successfully
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
 module.exports = app;

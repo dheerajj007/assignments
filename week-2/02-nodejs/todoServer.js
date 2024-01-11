@@ -47,75 +47,61 @@ const port = 3001;
 
 app.use(bodyParser.json());
 
-class Todo {
-  constructor(title, description) {
-    this.title = title;
-    this.description = description;
-    this.id = Date.now().toString();
-  }
-}
+let todos = [];
 
-let Todos = [];
-
+// Get all todos
 app.get("/todos", (req, res) => {
-  try {
-    res.status(200).json(Todos);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
-  }
+  res.status(200).send(todos);
 });
 
+// Get a todo by ID
 app.get("/todos/:id", (req, res) => {
-  let todoId = req.params.id;
-  try {
-    for (let i = 0; i < Todos.length; i++) {
-      if (Todos[i].id === todoId) {
-        res.status(200).json(Todos[i]);
-        return;
-      }
-    }
-    res.status(404).send("Todo Not Found");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
+  const { id } = req.params;
+  const todo = todos.find((item) => item.id === parseInt(id));
+
+  if (todo) {
+    res.status(200).json(todo);
+  } else {
+    res.status(404).send("Not Found");
   }
 });
 
+// Post a todo
 app.post("/todos", (req, res) => {
-  let todoJson = req.body;
-  let todo = new Todo(todoJson.title, todoJson.description);
-  Todos.push(todo);
+  const { title, completed, description } = req.body;
+  const id = todos.length + 1;
+  const newTodo = { title, id, completed, description };
 
-  res.status(201).json(todo);
+  todos.push(newTodo);
+  res.status(201).json({ id });
 });
 
 app.put("/todos/:id", (req, res) => {
-  let todoId = req.params.id;
-  let todoJson = req.body;
+  const { id } = req.params;
+  const { title, description, completed } = req.body;
 
-  for (let i = 0; i < Todos.length; i++) {
-    if (todoId === Todos[i].id) {
-      Todos[i].title = todoJson.title;
-      Todos[i].description = todoJson.description;
+  const todoIndex = todos.findIndex((item) => item.id === parseInt(id));
 
-      res.status(200).json(Todos[i]);
-      return;
-    }
+  if (todoIndex !== -1) {
+    todos[todoIndex] = { id: parseInt(id), title, description, completed };
+
+    res.status(200).send("Updated");
+  } else {
+    res.status(404).send("Not Found");
   }
-  res.status(404).send("Todo not found!");
 });
 
 app.delete("/todos/:id", (req, res) => {
-  let todoId = req.params.id;
-  for (let i = 0; i < Todos.length; i++) {
-    if (todoId === Todos[i].id) {
-      Todos.splice(i, 1);
-      res.status(200).send("Item Deleted");
-      return;
-    }
+  const { id } = req.params;
+  const todoIndex = todos.findIndex((item) => item.id === parseInt(id));
+
+  if (todoIndex !== -1) {
+    todos.splice(todoIndex, 1);
+
+    res.status(200).send("Deleted");
+  } else {
+    res.status(404).send("Not Found");
   }
-  res.status(404).send("Todo not found!");
 });
 
 // 404 for any other route

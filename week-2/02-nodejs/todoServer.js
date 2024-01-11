@@ -39,11 +39,91 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const express = require("express");
+const bodyParser = require("body-parser");
+
+const app = express();
+const port = 3001;
+
+app.use(bodyParser.json());
+
+class Todo {
+  constructor(title, description) {
+    this.title = title;
+    this.description = description;
+    this.id = Date.now().toString();
+  }
+}
+
+let Todos = [];
+
+app.get("/todos", (req, res) => {
+  try {
+    res.status(200).json(Todos);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/todos/:id", (req, res) => {
+  let todoId = req.params.id;
+  try {
+    for (let i = 0; i < Todos.length; i++) {
+      if (Todos[i].id === todoId) {
+        res.status(200).json(Todos[i]);
+        return;
+      }
+    }
+    res.status(404).send("Todo Not Found");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/todos", (req, res) => {
+  let todoJson = req.body;
+  let todo = new Todo(todoJson.title, todoJson.description);
+  Todos.push(todo);
+
+  res.status(201).json(todo);
+});
+
+app.put("/todos/:id", (req, res) => {
+  let todoId = req.params.id;
+  let todoJson = req.body;
+
+  for (let i = 0; i < Todos.length; i++) {
+    if (todoId === Todos[i].id) {
+      Todos[i].title = todoJson.title;
+      Todos[i].description = todoJson.description;
+
+      res.status(200).json(Todos[i]);
+      return;
+    }
+  }
+  res.status(404).send("Todo not found!");
+});
+
+app.delete("/todos/:id", (req, res) => {
+  let todoId = req.params.id;
+  for (let i = 0; i < Todos.length; i++) {
+    if (todoId === Todos[i].id) {
+      Todos.splice(i, 1);
+      res.status(200).send("Item Deleted");
+      return;
+    }
+  }
+  res.status(404).send("Todo not found!");
+});
+
+// 404 for any other route
+app.use((req, res) => {
+  res.status(404).send("Not Found");
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
+module.exports = app;
